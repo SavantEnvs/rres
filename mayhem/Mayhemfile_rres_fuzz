@@ -1,0 +1,18 @@
+project: savantenvs/rres
+target: rres_fuzz
+
+# In-process libFuzzer harness over the rres (.rres) file/chunk parser. The harness stages
+# the fuzzer bytes to a harness-owned mkstemp() scratch file under $TMPDIR (default /tmp)
+# inside the process, so no input file path is required here.
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/rres_fuzz/testsuite
+
+cmds:
+  - cmd: /mayhem/rres_fuzz
+    libfuzzer: true
+    # Per-exec timeout, owned by Mayhem: the harness has no timer (#1298). This is the same
+    # 5 s bound as the removed harness watchdog. Normal inputs take about 100 ms at most, but a
+    # chunk that declares a packedSize near 2 GB makes the loader CRC that many bytes for
+    # minutes (known-findings/slow-crc-declared-size/).
+    timeout: 5
